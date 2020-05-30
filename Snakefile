@@ -1,37 +1,54 @@
 import os
 import json
 
+configfile: 'config.yaml'
+
 output_folder = os.path.join(os.getcwd(), 'output')
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)
 
 rgio_path = 'multielectrode_grasp/code/reachgraspio/'
 odml_path = 'multielectrode_grasp/code/python-odml/'
-neo_path = 'multielectrode_grasp/code/python-neo/'
+session_id = 'i140703-001'
 
-print(os.path.join(output_folder, 'parsed_data.nix'))
+rule all:
+    input:
+        os.path.join(output_folder, 'frames.mp4')
 
 rule get_data:
     output:
-        data = directory('multielectrode_grasp/')
+        lfp_data = '{path}.ns2',
+        spike_data = '{path}-03.nev',
+        metadata = '{path}.odml'
     params:
-        session = 'i140703-001'
+        dir = lambda wildcards: os.path.dirname(wildcards.path),
+        lfp_data = lambda wildcards, output: os.path.basename(output.lfp_data),
+        spike_data = lambda wildcards, output: os.path.basename(output.spike_data),
+        metadata = lambda wildcards, output: os.path.basename(output.metadata)
     shell:
         """
+        rm -rf multielectrode_grasp/
         git clone git@gin.g-node.org:/INT/multielectrode_grasp.git
-        git-annex get multielectrode_grasp/datasets/{params.seesion}.nev
-        git-annex get multielectrode_grasp/datasets/{params.session}.ns2
-        git-annex get multielectrode_grasp/datasets/{params.session}.odml
+        git-annex init
+        cd {params.dir}
+        git-annex get {params.lfp_data}
+        git-annex get {params.spike_data}
+        git-annex get {params.metadata}
         """
 
 rule load_data:
     input:
-        data = os.path.join('multielectrode_grasp', 'datasets', 'i140703-001.ns2'),
-        odml = os.path.join('multielectrode_grasp/', 'datasets', 'i140703-001.odml'),
+        lfp_data = os.path.join('multielectrode_grasp',
+                                'datasets', f'{session_id}.ns2'),
+        spike_data = os.path.join('multielectrode_grasp',
+                                  'datasets', f'{session_id}-03.nev'),
+        odml = os.path.join('multielectrode_grasp',
+                            'datasets', f'{session_id}.odml'),
         script = 'scripts/load_data.py'
     params:
-        t_start = 0,  # s
-        t_stop = 2,  # s
+        session = session_id,
+        t_start = config['START_TIME'] - config['TIME_WINDOW']/2,
+        t_stop  = config['STOP_TIME']  + config['TIME_WINDOW']/2,
         channels = [1, 96], # incl.
         grid_size = [10, 10],
         add_paths = f"export PYTHONPATH='{rgio_path}:{odml_path}:$PYTHONPATH'"
@@ -39,8 +56,8 @@ rule load_data:
         data = os.path.join(output_folder, 'parsed_data.nix')
     shell:
         """
-        export PYTHONPATH='{rgio_path}:{odml_path}:$PYTHONPATH'
-        python {input.script} --data {input.data} \
+        {params.add_paths}
+        python {input.script} --data {input.lfp_data} \
                               --odml {input.odml} \
                               --output {output.data} \
                               --channels {params.channels} \
@@ -51,16 +68,16 @@ rule load_data:
 
 rule filter_and_transform:
     input:
-        data = rules.load_data.output.data,
+        data = os.path.join('{path}', 'parsed_data.nix'),
         script = 'scripts/filter_and_transform.py'
     params:
-        freq_bands = json.dumps({"Delta": ( 1,  4),
-                                 "Theta": ( 4,  8),
-                                 "Alpha": ( 8, 12),
-                                 "Beta" : (12, 25)}),
+        freq_bands = json.dumps({"Delta": config['DELTA_FREQ'],
+                                 "Theta": config['THETA_FREQ'],
+                                 "Alpha": config['ALPHA_FREQ'],
+                                 "Beta" : config['BETA_FREQ']}),
         filter_order = 2
     output:
-        data = os.path.join(output_folder, 'processed_data.nix')
+        data = os.path.join('{path}', 'processed_data.nix')
     shell:
         """
         python {input.script} --data {input.data} \
@@ -73,11 +90,13 @@ rule filter_and_transform:
 rule plot_movie_frames:
     input:
         data = os.path.join('{path}', 'processed_data.nix'),
-        cortex_img = 'cortex_location.png',
+        cortex_img = 'images/cortex_location_croped.png',
         script = "scripts/plot_frames.py"
     params:
-        frame_rate = 400,  # Hz
-        t_window = 1  # s
+        frame_rate = config['FRAME_RATE'],
+        t_window = config['TIME_WINDOW'],
+        t_start = config['START_TIME'],
+        t_stop = config['STOP_TIME']
     output:
         frame_folder = directory(os.path.join('{path}', 'frames'))
     shell:
@@ -86,6 +105,8 @@ rule plot_movie_frames:
                               --frame_folder "{output.frame_folder}" \
                               --frame_rate {params.frame_rate} \
                               --t_window {params.t_window} \
+                              --t_start {params.t_start} \
+                              --t_stop {params.t_stop} \
                               --cortex_img {input.cortex_img}
         """
 
@@ -96,12 +117,12 @@ rule plot_movie:
         os.path.join('{path}', 'frames.mp4')
     params:
         frame_path = lambda wildcards, input: os.path.join(input[0],
-                                                'frame_%05d.png'),
-        quality = 5,
-        scale_x = 720,
-        scale_y = 720,
-        bitrate = '20M',
-        fps = 20
+                                                           'frame_%05d.png'),
+        quality = config['VIDEO_QUALITY'],
+        scale_x = config['SCALE_X'],
+        scale_y = config['SCALE_Y'],
+        bitrate = config['BITRATE'],
+        fps = config['FPS']
     shell:
         """
         ffmpeg -y -framerate {params.fps} \

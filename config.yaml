@@ -1,0 +1,15 @@
+START_TIME: 1.3  # s
+STOP_TIME: 4.7  # s
+TIME_WINDOW: 1  # s
+
+DELTA_FREQ: [1, 4]
+THETA_FREQ: [4, 8]
+ALPHA_FREQ: [8, 12]
+BETA_FREQ:  [12, 25]
+
+FRAME_RATE: 300  # Hz
+FPS: 24
+VIDEO_QUALITY: 12 # 0 (good) to bad (31)
+SCALE_X: 720  # px
+SCALE_Y: 720  # px
+BITRATE: '15M'

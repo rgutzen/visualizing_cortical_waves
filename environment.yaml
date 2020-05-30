@@ -1,16 +1,17 @@
-name: spatio-temporal-fluct-env
+name: visualizing_cortical_waves
 channels:
   - conda-forge
   - bioconda
   - defaults
 dependencies:
-  - python >= 3.7
-  - pip >= 19.3.1
-  - snakemake >= 5.9.1
+  - python == 3.8
+  - pip == 20.1.1
+  - snakemake == 5.18.1
   - pip:
-    # - elephant >= 0.6.3
-    - git+git://github.com/NeuralEnsemble/elephant.git #(pip install from git repo branch)
-    # - neo > 0.8.0
+    - elephant == 0.7.0
+    # - neo == 0.8.0
     - git+https://github.com/NeuralEnsemble/python-neo.git
-    - nixio >= 1.5.0b4
+    - nixio == 1.5.0b4
     - matplotlib
+    - lxml
+    - rdflib

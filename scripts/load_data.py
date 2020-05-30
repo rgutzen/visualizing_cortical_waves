@@ -15,7 +15,7 @@ def load_block(session_path, odml_dir, channels, t_start, t_stop):
                               n_starts=t_start*pq.s, n_stops=t_stop*pq.s,
                               channels=range(channels[0], channels[1]+1),
                               units=None,
-                              load_events=False, load_waveforms=False,
+                              load_events=True, load_waveforms=False,
                               scaling='voltage',
                               correct_filter_shifts=True)
 
