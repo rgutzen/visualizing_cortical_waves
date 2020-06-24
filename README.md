@@ -1,6 +1,6 @@
 # Brain Waves in the Motor Cortex
 ![Snapshot](images/snapshot.png)
-[-> Video](https://rgutzen.github.io/assets/brain_wave_visualization.mp4)
+[-> Video](https://rgutzen.github.io/assets/visualizing_waves/brain_wave_visualization.mp4)
 
 ## Abstract
 Much of the communication between neurons in the brain happens via electric pulses (Action Potentials). However, there are also continuous electric potentials all around the neurons, and especially their low frequency components appear to be relevant for various aspects of brain function.
