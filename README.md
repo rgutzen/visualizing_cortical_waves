@@ -1,6 +1,6 @@
 # Brain Waves in the Motor Cortex
 ![Snapshot](images/snapshot.png)
-[Animation](https://rgutzen.github.io/assets/visualizing_waves/brain_wave_visualization.mp4) | [Blog Post](https://rgutzen.github.io/2020-06-25-visualizing_waves/)
+[Animation](https://rgutzen.github.io/assets/visualizing_waves/brain_wave_visualization.webm) | [Blog Post](https://rgutzen.github.io/2020-06-25-visualizing_waves/)
 ## Abstract
 Much of the communication between neurons in the brain happens via electric pulses (Action Potentials). However, there are also continuous electric potentials all around the neurons, and especially their low frequency components appear to be relevant for various aspects of brain function.
 Different frequencies correlate to different types of brain states and activity and are thus organized into regimes. For example, oscillations in the Beta range (\~12-25 Hz) can be associated with movement planing; the Alpha range (\~8-12 Hz) is thought to relate to memory formation and consolidation; the Theta range (\~4-8 Hz) is often studied in relation to attention; and the Delta range (\~1-4 Hz) is assumed to be related to decision making.
